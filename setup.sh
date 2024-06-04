@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Script must be executable first, with chmod +x setup.sh
+
 # Clone the repository
 git clone https://github.com/cakirmert/OSLAB-3.git
 

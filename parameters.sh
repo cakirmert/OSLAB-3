@@ -13,18 +13,18 @@ gcc -o writer_measure task3.2/writer_measure.c
 run_message_queue_tests() {
     # Parameters to test
     message_sizes=(10 50 256)
-    num_messages=1
+    num_messages=10
     delay=1
 
     for size in "${message_sizes[@]}"; do
-        echo "Running sender with message size: $size"
-        ./sender $size $num_messages $delay &
-        sender_pid=$!        
-        sleep 1  # Ensure the sender is ready
-        wait $sender_pid
+        echo "Running receiver for message size: $size"
         ./receiver $num_messages $delay &
         receiver_pid=$!
-        sleep 1  # Ensure the receiver is ready
+        sleep 2  # Ensure the receiver is ready
+
+        echo "Running sender with message size: $size"
+        ./sender $size $num_messages $delay
+
         wait $receiver_pid
     done
 }
@@ -41,7 +41,7 @@ run_shared_memory_tests() {
         echo "Running writer_measure with data size: $size"
         ./reader &
         reader_pid=$!
-        sleep 1  # Ensure the reader is ready
+        sleep 2  # Ensure the reader is ready
         ./writer_measure $size
         wait $reader_pid
     done

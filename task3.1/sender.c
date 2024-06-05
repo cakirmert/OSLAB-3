@@ -3,35 +3,58 @@
 #include <string.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <unistd.h>
 
-#define QUEUE_KEY 12345      // Define the key for the message queue
-#define MESSAGE_TYPE 1       // Define the message type
+#define QUEUE_KEY 12345
+#define MESSAGE_TYPE 1
 
-// Define the message structure
 struct message {
     long msg_type;
     char msg_text[100];
 };
 
-int main() {
-    // Get the message queue ID
+int main(int argc, char *argv[]) {
+    if (argc != 4) {
+        fprintf(stderr, "Usage: %s <message_size> <num_messages> <delay>\n", argv[0]);
+        exit(1);
+    }
+
+    int message_size = atoi(argv[1]);
+    int num_messages = atoi(argv[2]);
+    int delay = atoi(argv[3]);
+
+    if (message_size <= 0 || message_size > 100) {
+        fprintf(stderr, "Message size must be between 1 and 100\n");
+        exit(1);
+    }
+    if (num_messages <= 0) {
+        fprintf(stderr, "Number of messages must be greater than 0\n");
+        exit(1);
+    }
+    if (delay < 0) {
+        fprintf(stderr, "Delay must be 0 or greater\n");
+        exit(1);
+    }
+
     int msg_id = msgget(QUEUE_KEY, 0666 | IPC_CREAT);
     if (msg_id < 0) {
         perror("msgget");
         exit(1);
     }
 
-    // Prepare the message
     struct message msg;
     msg.msg_type = MESSAGE_TYPE;
-    strcpy(msg.msg_text, "Hello from sender!");
+    memset(msg.msg_text, 'A', message_size);
+    msg.msg_text[message_size] = '\0';
 
-    // Send the message
-    if (msgsnd(msg_id, &msg, sizeof(msg.msg_text), 0) < 0) {
-        perror("msgsnd");
-        exit(1);
+    for (int i = 0; i < num_messages; ++i) {
+        if (msgsnd(msg_id, &msg, message_size + 1, 0) < 0) {
+            perror("msgsnd");
+            exit(1);
+        }
+        printf("Message sent: %s\n", msg.msg_text);
+        sleep(delay);
     }
 
-    printf("Message sent: %s\n", msg.msg_text);
     return 0;
 }

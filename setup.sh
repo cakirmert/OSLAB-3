@@ -1,16 +1,5 @@
 #!/bin/bash
 
-# Script must be executable first, with chmod +x setup.sh
-
-# Clone the repository
-git clone https://github.com/cakirmert/OSLAB-3.git
-
-# Navigate to the repository directory
-cd OSLAB-3
-
-# Compile the server program
-gcc -o server task3.0\(2.3\)/server.c
-
 # Compile the message queue programs
 gcc -o sender task3.1/sender.c
 gcc -o receiver task3.1/receiver.c
@@ -20,5 +9,57 @@ gcc -o writer task3.2/writer.c
 gcc -o reader task3.2/reader.c
 gcc -o writer_measure task3.2/writer_measure.c
 
-# Indicate that the setup is complete
-echo "Setup complete. All programs have been compiled."
+# Function to clear the message queue
+clear_message_queue() {
+    local queue_key=12345
+    local msg_id=$(ipcs -q | grep $queue_key | awk '{print $2}')
+    if [ ! -z "$msg_id" ]; then
+        ipcrm -q $msg_id
+    fi
+}
+
+# Run parameter variations for message queues
+run_message_queue_tests() {
+    # Parameters to test
+    message_sizes=(10 50 256)
+    num_messages=10
+    delay=1
+
+    for size in "${message_sizes[@]}"; do
+        clear_message_queue  # Clear the message queue before each test
+
+        echo "Running receiver for message size: $size"
+        ./receiver $num_messages $delay &
+        receiver_pid=$!
+        sleep 2  # Give time for the receiver to start
+
+        echo "Running sender with message size: $size"
+        ./sender $size $num_messages $delay
+
+        wait $receiver_pid
+    done
+}
+
+# Run the message queue tests
+run_message_queue_tests
+
+# Run parameter variations for shared memory
+run_shared_memory_tests() {
+    # Data sizes to test
+    data_sizes=(256 512 1024)
+
+    for size in "${data_sizes[@]}"; do
+        echo "Running writer_measure with data size: $size"
+        ./reader &
+        reader_pid=$!
+        sleep 2  # Give time for the reader to start
+        ./writer_measure $size
+        wait $reader_pid
+    done
+}
+
+# Run the shared memory tests
+run_shared_memory_tests
+
+# Indicate that all tests are complete
+echo "All tests complete."

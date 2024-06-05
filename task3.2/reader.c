@@ -11,7 +11,8 @@
 typedef struct {
     int data_ready;
     int data_ack;
-    char data[SHM_SIZE - 2 * sizeof(int)];
+    int terminate;
+    char data[SHM_SIZE - 3 * sizeof(int)];
 } shared_memory_t;
 
 int main() {
@@ -27,19 +28,15 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    while (1) {
+    while (!shm_ptr->terminate) {
         if (shm_ptr->data_ready) {
             printf("Data read from shared memory: %s\n", shm_ptr->data);
             shm_ptr->data_ready = 0;
             shm_ptr->data_ack = 1;
         }
-        usleep(100); // Sleep to reduce CPU usage
+        usleep(100); // Reduce CPU usage
     }
 
-    if (shmdt(shm_ptr) == -1) {
-        perror("shmdt error");
-        return EXIT_FAILURE;
-    }
-
+    shmdt(shm_ptr);
     return 0;
 }

@@ -12,55 +12,39 @@
 typedef struct {
     int data_ready;
     int data_ack;
-    char data[SHM_SIZE - 2 * sizeof(int)];
+    int terminate;
+    char data[SHM_SIZE - 3 * sizeof(int)];
 } shared_memory_t;
 
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <data_size>\n", argv[0]);
-        exit(1);
-    }
-
-    int data_size = atoi(argv[1]);
-    if (data_size <= 0 || data_size > (SHM_SIZE - 2 * sizeof(int))) {
-        fprintf(stderr, "Data size must be between 1 and %lu\n", (unsigned long)(SHM_SIZE - 2 * sizeof(int)));
-        exit(1);
-    }
-
+int main() {
     int shm_id = shmget(SHM_KEY, SHM_SIZE, IPC_CREAT | 0666);
     if (shm_id < 0) {
         perror("shmget error");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     shared_memory_t *shm_ptr = (shared_memory_t *)shmat(shm_id, NULL, 0);
     if (shm_ptr == (void *)-1) {
         perror("shmat error");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
-    memset(shm_ptr->data, 'A', data_size);
-    shm_ptr->data[data_size] = '\0';
-    shm_ptr->data_ready = 0;
-    shm_ptr->data_ack = 0;
+    shm_ptr->terminate = 0;
+    int count = 1000; // Limit the number of messages
 
-    clock_t start = clock();
-    for (int i = 0; i < 100000; ++i) {
-        shm_ptr->data_ready = 1;
-        while (!shm_ptr->data_ack) {
-            usleep(100); // Wait for acknowledgment
+    while (count--) {
+        if (!shm_ptr->data_ready) {
+            sprintf(shm_ptr->data, "Message %d", 1000 - count);
+            shm_ptr->data_ready = 1;
+            while (!shm_ptr->data_ack) {
+                usleep(100);
+            }
+            shm_ptr->data_ack = 0;
         }
-        shm_ptr->data_ack = 0;
-    }
-    clock_t end = clock();
-
-    double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("Data transfer rate for %d bytes: %f MB/s\n", data_size, (data_size * 100000.0) / (1024 * 1024 * time_spent));
-
-    if (shmdt(shm_ptr) == -1) {
-        perror("shmdt error");
-        return EXIT_FAILURE;
+        usleep(100);
     }
 
+    shm_ptr->terminate = 1;
+    shmdt(shm_ptr);
     return 0;
 }

@@ -11,43 +11,37 @@
 typedef struct {
     int data_ready;
     int data_ack;
-    char data[SHM_SIZE - 2 * sizeof(int)];
+    int terminate;
+    char data[SHM_SIZE - 3 * sizeof(int)];
 } shared_memory_t;
 
 int main() {
     int shm_id = shmget(SHM_KEY, SHM_SIZE, IPC_CREAT | 0666);
     if (shm_id < 0) {
         perror("shmget error");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     shared_memory_t *shm_ptr = (shared_memory_t *)shmat(shm_id, NULL, 0);
     if (shm_ptr == (void *)-1) {
         perror("shmat error");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
-    const char *message = "Hello from writer!";
-    strncpy(shm_ptr->data, message, sizeof(shm_ptr->data) - 1);
-    shm_ptr->data[sizeof(shm_ptr->data) - 1] = '\0';
+    strcpy(shm_ptr->data, "Hello, world!");
+    shm_ptr->terminate = 0;
 
-    while (1) {
-        if (!shm_ptr->data_ack) {
+    while (!shm_ptr->terminate) {
+        if (!shm_ptr->data_ready) {
             shm_ptr->data_ready = 1;
-            printf("Data written to shared memory: %s\n", shm_ptr->data);
             while (!shm_ptr->data_ack) {
-                usleep(100); // Wait for acknowledgment
+                usleep(100);
             }
-            shm_ptr->data_ready = 0;
-            shm_ptr->data_ack = 0;
+            shm_ptr->data_ack = 0;  // Reset acknowledgment
         }
-        usleep(100); // Sleep to reduce CPU usage
+        usleep(100);  // Reduce CPU usage
     }
 
-    if (shmdt(shm_ptr) == -1) {
-        perror("shmdt error");
-        return EXIT_FAILURE;
-    }
-
+    shmdt(shm_ptr);
     return 0;
 }

@@ -7,9 +7,12 @@
 #define QUEUE_KEY 12345
 #define MESSAGE_TYPE 1
 
+// Define the maximum message size
+#define MAX_MESSAGE_SIZE 80
+
 struct message {
     long msg_type;
-    char msg_text[100];
+    char msg_text[MAX_MESSAGE_SIZE];
 };
 
 int main(int argc, char *argv[]) {

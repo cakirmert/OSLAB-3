@@ -12,7 +12,7 @@ gcc -o writer_measure task3.2/writer_measure.c
 # Run parameter variations for message queues
 run_message_queue_tests() {
     # Parameters to test
-    message_sizes=(10 50 100)
+    message_sizes=(10 50 80)
     num_messages=10
     delay=1
 

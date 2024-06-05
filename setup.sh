@@ -14,7 +14,7 @@ clear_message_queue() {
 run_message_queue_tests() {
     # Parameters to test
     message_sizes=(10 50 256)
-    num_messages=1
+    num_messages=5
     delay=1
 
     for size in "${message_sizes[@]}"; do

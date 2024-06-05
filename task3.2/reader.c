@@ -30,7 +30,7 @@ int main() {
 
     // Wait for data to be ready
     while (!shm_ptr->data_ready) {
-        usleep(100);
+        usleep(100); // Small delay to reduce CPU usage
     }
 
     // Read the data
@@ -40,9 +40,10 @@ int main() {
 
     // Wait for termination
     while (!shm_ptr->terminate) {
-        usleep(100);
+        usleep(100); // Small delay to reduce CPU usage
     }
 
+    // Detach from shared memory
     shmdt(shm_ptr);
     return 0;
 }

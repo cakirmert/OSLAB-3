@@ -28,19 +28,24 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    strcpy(shm_ptr->data, "Hello, world!");
-    shm_ptr->data_ready = 1;
+    // Initialize shared memory structure
+    shm_ptr->data_ready = 0;
     shm_ptr->data_ack = 0;
     shm_ptr->terminate = 0;
 
+    // Write data to shared memory
+    strcpy(shm_ptr->data, "Hello, world!");
+    shm_ptr->data_ready = 1;
+
     // Wait for acknowledgment
     while (!shm_ptr->data_ack) {
-        usleep(100);
+        usleep(100); // Small delay to reduce CPU usage
     }
 
     // Set terminate flag
     shm_ptr->terminate = 1;
 
+    // Detach from shared memory
     shmdt(shm_ptr);
     return 0;
 }

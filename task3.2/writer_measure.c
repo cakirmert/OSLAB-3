@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
         while (!shm_ptr->data_ack) {
             usleep(100); // Wait for acknowledgment
         }
-        shm_ptr->data_ack = 0;  // Reset acknowledgment
+        shm_ptr->data_ack = 0; // Reset acknowledgment
     }
     clock_t end = clock();
 
@@ -66,6 +66,7 @@ int main(int argc, char *argv[]) {
     double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
     printf("Data transfer rate for %d bytes: %f MB/s\n", data_size, (data_size * count) / (1024 * 1024 * time_spent));
 
+    // Detach from shared memory
     shmdt(shm_ptr);
     return 0;
 }

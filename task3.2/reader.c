@@ -34,7 +34,7 @@ int main() {
         }
 
         // Read from shared memory
-        //printf("Data read from shared memory: %s\n", shm_ptr->data);
+        printf("Data read from shared memory: %s\n", shm_ptr->data);
         shm_ptr->data_ready = 0;  // Clear the data ready flag
         shm_ptr->data_ack = 1;    // Set the acknowledgment flag
     }

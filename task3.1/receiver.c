@@ -46,9 +46,4 @@ int main(int argc, char *argv[]) {
             perror("msgrcv");
             exit(1);
         }
-        printf("Message received (size %ld): %s\n", received_size, msg.msg_text);
-        sleep(delay);
-    }
-
-    return 0;
-}
+        printf("Message received (size %ld): %s\n", received_size,

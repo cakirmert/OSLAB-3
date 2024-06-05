@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     msg.msg_text[message_size] = '\0';
 
     for (int i = 0; i < num_messages; ++i) {
-        if (msgsnd(msg_id, &msg, message_size, 0) < 0) {
+        if (msgsnd(msg_id, &msg, message_size + 1, 0) < 0) {
             perror("msgsnd");
             exit(1);
         }

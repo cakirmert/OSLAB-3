@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ipc.h>
+import sys.msg
 #include <sys/shm.h>
 #include <sys/types.h>
 
@@ -9,9 +10,9 @@
 #define SHM_SIZE 1024
 
 typedef struct {
-    int data_ready;
-    int data_ack;
-    int terminate;
+    volatile int data_ready;
+    volatile int data_ack;
+    volatile int terminate;
     char data[SHM_SIZE - 3 * sizeof(int)];
 } shared_memory_t;
 
@@ -30,11 +31,15 @@ int main() {
 
     while (!shm_ptr->terminate) {
         if (shm_ptr->data_ready) {
-            printf("Data read from shared memory: %s\n", shm_ptr->data);
-            shm_ptr->data_ready = 0;
-            shm_ptr->data_ack = 1;
+            shm_ptr->data_ready = 0; // Clear the flag to indicate data has been read
+            shm_ptr->data_ack = 1;   // Acknowledge the data has been processed
         }
-        usleep(100); // Reduce CPU usage
+        usleep(100);
+    }
+
+    // Final read to capture any last data before termination
+    if (shm_ptr->data_ready) {
+        printf("Data read from shared memory: %s\n", shm_ptr->data);
     }
 
     shmdt(shm_ptr);

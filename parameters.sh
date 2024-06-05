@@ -9,6 +9,17 @@ gcc -o writer task3.2/writer.c
 gcc -o reader task3.2/reader.c
 gcc -o writer_measure task3.2/writer_measure.c
 
+# Function to clear the message queue
+clear_message_queue() {
+    local queue_key=12345
+    local msg_id
+
+    msg_id=$(ipcs -q | awk -v key=$queue_key '$1 ~ key {print $2}')
+    if [ -n "$msg_id" ]; then
+        ipcrm -q $msg_id
+    fi
+}
+
 # Run parameter variations for message queues
 run_message_queue_tests() {
     # Parameters to test
@@ -17,6 +28,8 @@ run_message_queue_tests() {
     delay=1
 
     for size in "${message_sizes[@]}"; do
+        clear_message_queue  # Clear the message queue before each test
+
         echo "Running receiver for message size: $size"
         ./receiver $num_messages $delay &
         receiver_pid=$!

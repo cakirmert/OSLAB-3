@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 
     struct message msg;
     for (int i = 0; i < num_messages; ++i) {
-        if (msgrcv(msg_id, &msg, sizeof(msg.msg_text), MESSAGE_TYPE, 0) < 0) {
+        if (msgrcv(msg_id, &msg, MAX_MESSAGE_SIZE, MESSAGE_TYPE, 0) < 0) {
             perror("msgrcv");
             exit(1);
         }

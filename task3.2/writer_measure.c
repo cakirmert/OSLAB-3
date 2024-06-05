@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
 
     int data_size = atoi(argv[1]);
     if (data_size <= 0 || data_size > (SHM_SIZE - 2 * sizeof(int))) {
-        fprintf(stderr, "Data size must be between 1 and %lu\n", (SHM_SIZE - 2 * sizeof(int)));
+        fprintf(stderr, "Data size must be between 1 and %lu\n", (unsigned long)(SHM_SIZE - 2 * sizeof(int)));
         exit(1);
     }
 

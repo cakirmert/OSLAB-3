@@ -8,7 +8,8 @@
 #define QUEUE_KEY 12345
 #define MESSAGE_TYPE 1
 
-#define MAX_MESSAGE_SIZE 80 // Define a smaller message size
+// Define the maximum message size
+#define MAX_MESSAGE_SIZE 80
 
 struct message {
     long msg_type;
@@ -50,7 +51,7 @@ int main(int argc, char *argv[]) {
     msg.msg_text[message_size] = '\0';
 
     for (int i = 0; i < num_messages; ++i) {
-        if (msgsnd(msg_id, &msg, message_size + 1, 0) < 0) {
+        if (msgsnd(msg_id, &msg, message_size, 0) < 0) {
             perror("msgsnd");
             exit(1);
         }

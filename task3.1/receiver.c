@@ -8,7 +8,7 @@
 #define MESSAGE_TYPE 1
 
 // Define the maximum message size
-#define MAX_MESSAGE_SIZE 80
+#define MAX_MESSAGE_SIZE 256
 
 struct message {
     long msg_type;

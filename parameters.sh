@@ -10,7 +10,7 @@ gcc -o writer_measure task3.2/writer_measure.c
 # Run parameter variations for shared memory
 run_shared_memory_tests() {
     # Data sizes to test
-    data_sizes=(256 512 1024)
+    data_sizes=(256 512 1012)
 
     for size in "${data_sizes[@]}"; do
         echo "Running writer_measure with data size: $size"

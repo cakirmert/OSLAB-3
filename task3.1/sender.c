@@ -8,9 +8,11 @@
 #define QUEUE_KEY 12345
 #define MESSAGE_TYPE 1
 
+#define MAX_MESSAGE_SIZE 80 // Define a smaller message size
+
 struct message {
     long msg_type;
-    char msg_text[100];
+    char msg_text[MAX_MESSAGE_SIZE];
 };
 
 int main(int argc, char *argv[]) {
@@ -23,8 +25,8 @@ int main(int argc, char *argv[]) {
     int num_messages = atoi(argv[2]);
     int delay = atoi(argv[3]);
 
-    if (message_size <= 0 || message_size > 100) {
-        fprintf(stderr, "Message size must be between 1 and 100\n");
+    if (message_size <= 0 || message_size > MAX_MESSAGE_SIZE) {
+        fprintf(stderr, "Message size must be between 1 and %d\n", MAX_MESSAGE_SIZE);
         exit(1);
     }
     if (num_messages <= 0) {

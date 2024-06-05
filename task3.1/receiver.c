@@ -16,22 +16,12 @@ struct message {
 };
 
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <num_messages> <delay>\n", argv[0]);
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <num_messages>\n", argv[0]);
         exit(1);
     }
 
     int num_messages = atoi(argv[1]);
-    int delay = atoi(argv[2]);
-
-    if (num_messages <= 0) {
-        fprintf(stderr, "Number of messages must be greater than 0\n");
-        exit(1);
-    }
-    if (delay < 0) {
-        fprintf(stderr, "Delay must be 0 or greater\n");
-        exit(1);
-    }
 
     int msg_id = msgget(QUEUE_KEY, 0666 | IPC_CREAT);
     if (msg_id < 0) {
@@ -41,13 +31,12 @@ int main(int argc, char *argv[]) {
 
     struct message msg;
     for (int i = 0; i < num_messages; ++i) {
-        ssize_t received_size = msgrcv(msg_id, &msg, MAX_MESSAGE_SIZE, MESSAGE_TYPE, 0);
+        ssize_t received_size = msgrcv(msg_id, &msg, sizeof(msg.msg_text), MESSAGE_TYPE, 0);
         if (received_size < 0) {
             perror("msgrcv");
             exit(1);
         }
-        printf("Message received (size %ld): %s\n", received_size, msg.msg_text);
-        sleep(delay);
+        printf("Message received (size %ld): %s\n", received_size - sizeof(long), msg.msg_text);
     }
 
     return 0;

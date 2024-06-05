@@ -17,25 +17,16 @@ struct message {
 };
 
 int main(int argc, char *argv[]) {
-    if (argc != 4) {
-        fprintf(stderr, "Usage: %s <message_size> <num_messages> <delay>\n", argv[0]);
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <message_size> <num_messages>\n", argv[0]);
         exit(1);
     }
 
     int message_size = atoi(argv[1]);
     int num_messages = atoi(argv[2]);
-    int delay = atoi(argv[3]);
 
     if (message_size <= 0 || message_size > MAX_MESSAGE_SIZE) {
         fprintf(stderr, "Message size must be between 1 and %d\n", MAX_MESSAGE_SIZE);
-        exit(1);
-    }
-    if (num_messages <= 0) {
-        fprintf(stderr, "Number of messages must be greater than 0\n");
-        exit(1);
-    }
-    if (delay < 0) {
-        fprintf(stderr, "Delay must be 0 or greater\n");
         exit(1);
     }
 
@@ -47,16 +38,15 @@ int main(int argc, char *argv[]) {
 
     struct message msg;
     msg.msg_type = MESSAGE_TYPE;
-    memset(msg.msg_text, 'A', message_size);
-    msg.msg_text[message_size] = '\0';
-
     for (int i = 0; i < num_messages; ++i) {
-        if (msgsnd(msg_id, &msg, message_size + 1, 0) < 0) {
+        memset(msg.msg_text, 'A', message_size);
+        msg.msg_text[message_size] = '\0';
+        if (msgsnd(msg_id, &msg, message_size + sizeof(long), 0) < 0) {
             perror("msgsnd");
             exit(1);
         }
         printf("Message sent (size %d): %s\n", message_size, msg.msg_text);
-        sleep(delay);
+        sleep(1);  // Ensure there's a delay between messages
     }
 
     return 0;

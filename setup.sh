@@ -1,24 +1,16 @@
 #!/bin/bash
 
 # Compile the message queue programs
-gcc -o sender task3.1/sender.c
-gcc -o receiver task3.1/receiver.c
-
-# Compile the shared memory programs
-gcc -o writer task3.2/writer.c
-gcc -o reader task3.2/reader.c
-gcc -o writer_measure task3.2/writer_measure.c
+gcc -o sender sender.c
+gcc -o receiver receiver.c
 
 # Function to clear the message queue
 clear_message_queue() {
     local queue_key=12345
-    local msg_id=$(ipcs -q | grep $queue_key | awk '{print $2}')
-    if [ ! -z "$msg_id" ]; then
-        ipcrm -q $msg_id
-    fi
+    ipcrm -Q $queue_key 2>/dev/null
 }
 
-# Run parameter variations for message queues
+# Run message queue tests
 run_message_queue_tests() {
     # Parameters to test
     message_sizes=(10 50 256)
@@ -29,37 +21,18 @@ run_message_queue_tests() {
         clear_message_queue  # Clear the message queue before each test
 
         echo "Running receiver for message size: $size"
-        ./receiver $num_messages $delay &
+        ./receiver $num_messages &
         receiver_pid=$!
         sleep 2  # Give time for the receiver to start
 
         echo "Running sender with message size: $size"
-        ./sender $size $num_messages $delay
+        ./sender $size $num_messages
 
         wait $receiver_pid
     done
 }
 
-# Run the message queue tests
+# Execute the tests
 run_message_queue_tests
 
-# Run parameter variations for shared memory
-run_shared_memory_tests() {
-    # Data sizes to test
-    data_sizes=(256 512 1024)
-
-    for size in "${data_sizes[@]}"; do
-        echo "Running writer_measure with data size: $size"
-        ./reader &
-        reader_pid=$!
-        sleep 2  # Give time for the reader to start
-        ./writer_measure $size
-        wait $reader_pid
-    done
-}
-
-# Run the shared memory tests
-run_shared_memory_tests
-
-# Indicate that all tests are complete
 echo "All tests complete."

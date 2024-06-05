@@ -18,10 +18,10 @@ run_message_queue_tests() {
 
     for size in "${message_sizes[@]}"; do
         echo "Running sender with message size: $size"
+        ./sender $size $num_messages $delay
         ./receiver $num_messages $delay &
         receiver_pid=$!
         sleep 1  # Ensure the receiver is ready
-        ./sender $size $num_messages $delay
         wait $receiver_pid
     done
 }

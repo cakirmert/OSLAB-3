@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Compile the message queue programs
-gcc -o sender sender.c
-gcc -o receiver receiver.c
+gcc -o sender task3.1/sender.c
+gcc -o receiver task3.1/receiver.c
 
 # Function to clear the message queue
 clear_message_queue() {

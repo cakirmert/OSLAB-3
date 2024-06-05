@@ -12,10 +12,8 @@ gcc -o writer_measure task3.2/writer_measure.c
 # Function to clear the message queue
 clear_message_queue() {
     local queue_key=12345
-    local msg_id
-
-    msg_id=$(ipcs -q | awk -v key=$queue_key '$1 ~ key {print $2}')
-    if [ -n "$msg_id" ]; then
+    local msg_id=$(ipcs -q | grep $queue_key | awk '{print $2}')
+    if [ ! -z "$msg_id" ]; then
         ipcrm -q $msg_id
     fi
 }
@@ -24,7 +22,7 @@ clear_message_queue() {
 run_message_queue_tests() {
     # Parameters to test
     message_sizes=(10 50 256)
-    num_messages=1
+    num_messages=10
     delay=1
 
     for size in "${message_sizes[@]}"; do
@@ -33,7 +31,7 @@ run_message_queue_tests() {
         echo "Running receiver for message size: $size"
         ./receiver $num_messages $delay &
         receiver_pid=$!
-        sleep 2  # Ensure the receiver is ready
+        sleep 2  # Give time for the receiver to start
 
         echo "Running sender with message size: $size"
         ./sender $size $num_messages $delay
@@ -54,7 +52,7 @@ run_shared_memory_tests() {
         echo "Running writer_measure with data size: $size"
         ./reader &
         reader_pid=$!
-        sleep 2  # Ensure the reader is ready
+        sleep 2  # Give time for the reader to start
         ./writer_measure $size
         wait $reader_pid
     done

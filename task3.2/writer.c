@@ -28,23 +28,18 @@ int main() {
         return EXIT_FAILURE;
     }
 
+    strcpy(shm_ptr->data, "Hello, world!");
+    shm_ptr->data_ready = 1;
+    shm_ptr->data_ack = 0;
     shm_ptr->terminate = 0;
-    int count = 1000; // Limit the number of iterations
 
-    for (int i = 0; i < count; ++i) {
-        while (shm_ptr->data_ready) {
-            usleep(100); // Wait until the reader has processed the data
-        }
-        sprintf(shm_ptr->data, "Message %d", i);
-        shm_ptr->data_ready = 1;
-    }
-
-    // Set terminate flag and ensure the reader reads the last message
-    while (shm_ptr->data_ready) {
+    // Wait for acknowledgment
+    while (!shm_ptr->data_ack) {
         usleep(100);
     }
+
+    // Set terminate flag
     shm_ptr->terminate = 1;
-    shm_ptr->data_ready = 1;
 
     shmdt(shm_ptr);
     return 0;

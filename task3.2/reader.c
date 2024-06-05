@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ipc.h>
-import sys.msg
 #include <sys/shm.h>
 #include <sys/types.h>
 
@@ -29,17 +28,19 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    while (!shm_ptr->terminate) {
-        if (shm_ptr->data_ready) {
-            shm_ptr->data_ready = 0; // Clear the flag to indicate data has been read
-            shm_ptr->data_ack = 1;   // Acknowledge the data has been processed
-        }
+    // Wait for data to be ready
+    while (!shm_ptr->data_ready) {
         usleep(100);
     }
 
-    // Final read to capture any last data before termination
-    if (shm_ptr->data_ready) {
-        printf("Data read from shared memory: %s\n", shm_ptr->data);
+    // Read the data
+    printf("Data read from shared memory: %s\n", shm_ptr->data);
+    shm_ptr->data_ready = 0; // Clear the flag to indicate data has been read
+    shm_ptr->data_ack = 1;   // Acknowledge the data has been processed
+
+    // Wait for termination
+    while (!shm_ptr->terminate) {
+        usleep(100);
     }
 
     shmdt(shm_ptr);

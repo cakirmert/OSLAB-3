@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
             perror("msgsnd");
             exit(1);
         }
-        printf("Message sent: %s\n", msg.msg_text);
+        printf("Message sent (size %d): %s\n", message_size, msg.msg_text);
         sleep(delay);
     }
 

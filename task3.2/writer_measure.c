@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define SHM_KEY 12345
-#define SHM_SIZE 1024  // Ensure this size is large enough for your structure
+#define SHM_SIZE 1024
 
 typedef struct {
     int data_ready;
@@ -28,15 +28,15 @@ int main(int argc, char *argv[]) {
     }
 
     int shm_id = shmget(SHM_KEY, SHM_SIZE, IPC_CREAT | 0666);
-    if (shm_id == -1) {
-        perror("shmget failed");
-        exit(1);
+    if (shm_id < 0) {
+        perror("shmget error");
+        return EXIT_FAILURE;
     }
 
     shared_memory_t *shm_ptr = (shared_memory_t *)shmat(shm_id, NULL, 0);
     if (shm_ptr == (void *)-1) {
-        perror("shmat failed");
-        exit(1);
+        perror("shmat error");
+        return EXIT_FAILURE;
     }
 
     memset(shm_ptr->data, 'A', data_size);
@@ -47,8 +47,8 @@ int main(int argc, char *argv[]) {
     clock_t start = clock();
     for (int i = 0; i < 100000; ++i) {
         shm_ptr->data_ready = 1;
-        while (shm_ptr->data_ack == 0) {
-            // Busy wait
+        while (!shm_ptr->data_ack) {
+            usleep(100); // Wait for acknowledgment
         }
         shm_ptr->data_ack = 0;
     }
@@ -57,7 +57,10 @@ int main(int argc, char *argv[]) {
     double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
     printf("Data transfer rate for %d bytes: %f MB/s\n", data_size, (data_size * 100000.0) / (1024 * 1024 * time_spent));
 
-    shmdt(shm_ptr);
-    shmctl(shm_id, IPC_RMID, NULL);
+    if (shmdt(shm_ptr) == -1) {
+        perror("shmdt error");
+        return EXIT_FAILURE;
+    }
+
     return 0;
 }

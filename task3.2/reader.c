@@ -9,37 +9,37 @@
 #define SHM_SIZE 1024
 
 typedef struct {
-    int data_ready;  // Writer sets this to 1 when data is ready
-    int data_ack;    // Reader sets this to 1 when data is read
-    char data[SHM_SIZE - 2 * sizeof(int)];  // Data buffer
+    int data_ready;
+    int data_ack;
+    char data[SHM_SIZE - 2 * sizeof(int)];
 } shared_memory_t;
 
 int main() {
     int shm_id = shmget(SHM_KEY, SHM_SIZE, 0666);
     if (shm_id < 0) {
-        perror("shmget");
-        exit(1);
+        perror("shmget error");
+        return EXIT_FAILURE;
     }
 
     shared_memory_t *shm_ptr = (shared_memory_t *)shmat(shm_id, NULL, 0);
-    if (shm_ptr == (shared_memory_t *)-1) {
-        perror("shmat");
-        exit(1);
+    if (shm_ptr == (void *)-1) {
+        perror("shmat error");
+        return EXIT_FAILURE;
     }
 
-    for (int i = 0; i < 100000; ++i) {
-        // Wait for the writer to set the data ready flag
-        while (shm_ptr->data_ready == 0) {
-            // Busy wait
+    while (1) {
+        if (shm_ptr->data_ready) {
+            printf("Data read from shared memory: %s\n", shm_ptr->data);
+            shm_ptr->data_ready = 0;
+            shm_ptr->data_ack = 1;
         }
-
-        // Read from shared memory
-        //printf("Data read from shared memory: %s\n", shm_ptr->data);
-        shm_ptr->data_ready = 0;  // Clear the data ready flag
-        shm_ptr->data_ack = 1;    // Set the acknowledgment flag
+        usleep(100); // Sleep to reduce CPU usage
     }
 
-    shmdt(shm_ptr);
-    shmctl(shm_id, IPC_RMID, NULL);
+    if (shmdt(shm_ptr) == -1) {
+        perror("shmdt error");
+        return EXIT_FAILURE;
+    }
+
     return 0;
 }
